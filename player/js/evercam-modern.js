@@ -49,6 +49,7 @@
     var chapterButtons = [];
     var nativeTracks = [];
     var activeSubtitleLanguage = "off";
+    var preparingPictureInPicture = false;
     var activeChapterIndex = -1;
     var controlsTimer = null;
     var subtitleStorageKey = "evercam.subtitle." + String(courseConfig.title || "course");
@@ -418,6 +419,10 @@
             video.webkitPresentationMode === "picture-in-picture";
     }
 
+    function shouldUseNativeCaptions() {
+        return preparingPictureInPicture || pictureInPictureIsActive();
+    }
+
     function updateCaptionOverlay() {
         var selected = nativeTracks.find(function (item) {
             return item.language === activeSubtitleLanguage;
@@ -425,7 +430,7 @@
         var activeCues;
         var lines = [];
 
-        if (!selected || activeSubtitleLanguage === "off" || pictureInPictureIsActive()) {
+        if (!selected || activeSubtitleLanguage === "off" || shouldUseNativeCaptions()) {
             captionText.textContent = "";
             captionOverlay.hidden = true;
             return;
@@ -444,7 +449,7 @@
     }
 
     function syncSubtitleTrackModes() {
-        var useNativeRenderer = pictureInPictureIsActive();
+        var useNativeRenderer = shouldUseNativeCaptions();
         nativeTracks.forEach(function (item) {
             if (item.language !== activeSubtitleLanguage) {
                 item.track.mode = "disabled";
@@ -655,17 +660,63 @@
         }
     }
 
+    function frameFullscreenIsActive() {
+        return videoStage.classList.contains("is-frame-fullscreen");
+    }
+
+    function enterFrameFullscreen() {
+        videoStage.classList.add("is-frame-fullscreen");
+        document.body.classList.add("frame-fullscreen-active");
+        updateFullscreenState();
+        fitOpenMenus();
+    }
+
+    function exitFrameFullscreen() {
+        videoStage.classList.remove("is-frame-fullscreen");
+        document.body.classList.remove("frame-fullscreen-active");
+        updateFullscreenState();
+        syncChapterHeight();
+    }
+
+    function handleFullscreenFailure() {
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            enterFrameFullscreen();
+        }
+    }
+
     function toggleFullscreen() {
-        if (document.fullscreenElement || document.webkitFullscreenElement) {
-            (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        var operation;
+
+        if (frameFullscreenIsActive()) {
+            exitFrameFullscreen();
             return;
         }
-        if (videoStage.requestFullscreen) {
-            videoStage.requestFullscreen();
-        } else if (videoStage.webkitRequestFullscreen) {
-            videoStage.webkitRequestFullscreen();
-        } else if (video.webkitEnterFullscreen) {
-            video.webkitEnterFullscreen();
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+            operation = (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+            if (operation && typeof operation.catch === "function") {
+                operation.catch(showControls);
+            }
+            return;
+        }
+
+        try {
+            if (videoStage.requestFullscreen) {
+                operation = videoStage.requestFullscreen();
+            } else if (videoStage.webkitRequestFullscreen) {
+                operation = videoStage.webkitRequestFullscreen();
+            } else if (video.webkitEnterFullscreen && window.top === window.self) {
+                video.webkitEnterFullscreen();
+            } else {
+                enterFrameFullscreen();
+                return;
+            }
+        } catch (error) {
+            handleFullscreenFailure();
+            return;
+        }
+
+        if (operation && typeof operation.catch === "function") {
+            operation.catch(handleFullscreenFailure);
         }
     }
 
@@ -676,18 +727,33 @@
             if (document.pictureInPictureElement === video) {
                 operation = document.exitPictureInPicture();
             } else {
+                // Chromium snapshots the active text track while creating the PiP window.
+                // Enable the native subtitle track before requesting PiP so captions are included.
+                preparingPictureInPicture = true;
+                syncSubtitleTrackModes();
                 operation = video.requestPictureInPicture();
             }
         } else if (supportsWebKitPictureInPicture()) {
+            if (video.webkitPresentationMode !== "picture-in-picture") {
+                preparingPictureInPicture = true;
+                syncSubtitleTrackModes();
+            }
             video.webkitSetPresentationMode(
                 video.webkitPresentationMode === "picture-in-picture"
                     ? "inline"
                     : "picture-in-picture"
             );
+            preparingPictureInPicture = false;
+            syncSubtitleTrackModes();
         }
 
-        if (operation && typeof operation.catch === "function") {
-            operation.catch(function () {
+        if (operation && typeof operation.then === "function") {
+            operation.then(function () {
+                preparingPictureInPicture = false;
+                syncSubtitleTrackModes();
+            }).catch(function () {
+                preparingPictureInPicture = false;
+                syncSubtitleTrackModes();
                 showControls();
             });
         }
@@ -696,6 +762,7 @@
     function updatePictureInPictureState() {
         var isActive = document.pictureInPictureElement === video ||
             video.webkitPresentationMode === "picture-in-picture";
+        preparingPictureInPicture = false;
         pipToggle.classList.toggle("is-active", isActive);
         pipToggle.setAttribute("aria-label", isActive ? "離開子母畫面" : "子母畫面");
         pipToggle.title = isActive ? "離開子母畫面" : "子母畫面";
@@ -703,8 +770,16 @@
     }
 
     function updateFullscreenState() {
-        var isFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+        var isNativeFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+        var isFrameFullscreen = frameFullscreenIsActive();
+        var isFullscreen = isNativeFullscreen || isFrameFullscreen;
+        if (isNativeFullscreen && isFrameFullscreen) {
+            exitFrameFullscreen();
+            return;
+        }
         fullscreenToggle.setAttribute("aria-label", isFullscreen ? "離開全螢幕" : "全螢幕");
+        fullscreenToggle.title = isFrameFullscreen ? "離開框架內全螢幕" : (isFullscreen ? "離開全螢幕" : "全螢幕");
+        fullscreenToggle.classList.toggle("is-active", isFullscreen);
         showControls();
     }
 
@@ -768,6 +843,8 @@
         });
         document.addEventListener("fullscreenchange", updateFullscreenState);
         document.addEventListener("webkitfullscreenchange", updateFullscreenState);
+        document.addEventListener("fullscreenerror", handleFullscreenFailure);
+        document.addEventListener("webkitfullscreenerror", handleFullscreenFailure);
         video.addEventListener("enterpictureinpicture", updatePictureInPictureState);
         video.addEventListener("leavepictureinpicture", updatePictureInPictureState);
         video.addEventListener("webkitpresentationmodechanged", updatePictureInPictureState);
@@ -794,6 +871,9 @@
             } else if (event.key.toLowerCase() === "f") {
                 toggleFullscreen();
             } else if (event.key === "Escape") {
+                if (frameFullscreenIsActive()) {
+                    exitFrameFullscreen();
+                }
                 closeMenus();
             }
             showControls();

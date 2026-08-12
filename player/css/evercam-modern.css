@@ -712,11 +712,23 @@ h1 {
 }
 
 .video-stage:fullscreen,
-.video-stage:-webkit-full-screen {
+.video-stage:-webkit-full-screen,
+.video-stage.is-frame-fullscreen {
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     aspect-ratio: auto;
     border-radius: 0;
+}
+
+.video-stage.is-frame-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+}
+
+body.frame-fullscreen-active {
+    overflow: hidden;
 }
 
 .chapter-card {
