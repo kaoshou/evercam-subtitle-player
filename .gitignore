@@ -1,0 +1,21 @@
+# Release artifacts
+release/
+*.zip
+
+# Real EverCam course content (do not commit)
+*.mp4
+config.js
+config_quiz.js
+cover.jpg
+photo.gif
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+
