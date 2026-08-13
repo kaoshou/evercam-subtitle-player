@@ -2,6 +2,9 @@
 (function () {
     "use strict";
 
+    // 章節標題顯示行數：設為 1、2、3……；超出的文字會以省略號收合。
+    var CHAPTER_TITLE_LINES = 1;
+
     var languageLabels = {
         "zh-TW": "正體中文",
         "zh-CN": "簡體中文",
@@ -18,11 +21,15 @@
         id: "Bahasa Indonesia",
         ms: "Bahasa Melayu"
     };
-    var speedOptions = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
+    var speedOptions = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 5];
 
     var courseConfig = window.config || {};
     var subtitleData = window.EVERCAM_SUBTITLES || { tracks: [] };
     var chapters = Array.isArray(courseConfig.index) ? courseConfig.index : [];
+    var chapterTitleLines = Math.max(1, Math.floor(Number(CHAPTER_TITLE_LINES) || 1));
+    var hideChapterNumbers = courseConfig.hideSN === true ||
+        Number(courseConfig.hideSN) === 1 ||
+        String(courseConfig.hideSN).toLowerCase() === "true";
     var playerCard = document.querySelector(".player-card");
     var chapterCard = document.querySelector(".chapter-card");
     var video = document.getElementById("course-video");
@@ -37,6 +44,9 @@
     var seekSlider = document.getElementById("seek-slider");
     var currentTimeLabel = document.getElementById("current-time");
     var totalTimeLabel = document.getElementById("total-time");
+    var courseMeta = document.getElementById("course-meta");
+    var courseAuthor = document.getElementById("course-author");
+    var courseDuration = document.getElementById("course-duration");
     var fullscreenToggle = document.getElementById("fullscreen-toggle");
     var captionMenuWrap = document.getElementById("caption-menu-wrap");
     var captionButton = document.getElementById("caption-button");
@@ -119,8 +129,20 @@
 
     function setCourseMetadata() {
         var title = courseConfig.title || "未命名課程";
+        var author = "";
+        var duration = Number(courseConfig.duration) || 0;
         document.title = title;
         document.getElementById("course-title").textContent = title;
+
+        if (typeof courseConfig.author === "string") {
+            author = courseConfig.author.trim();
+        } else if (courseConfig.author && typeof courseConfig.author.name === "string") {
+            author = courseConfig.author.name.trim();
+        }
+
+        courseAuthor.hidden = !author;
+        courseAuthor.textContent = author ? "作者：" + author : "";
+        setCourseDurationMetadata(duration);
 
         if (courseConfig.poster) {
             video.poster = courseConfig.poster;
@@ -131,7 +153,14 @@
             video.src = "media.mp4";
         }
 
-        totalTimeLabel.textContent = formatTime(Number(courseConfig.duration) || 0);
+        totalTimeLabel.textContent = formatTime(duration);
+    }
+
+    function setCourseDurationMetadata(duration) {
+        var safeDuration = Number.isFinite(Number(duration)) ? Number(duration) : 0;
+        courseDuration.hidden = safeDuration <= 0;
+        courseDuration.textContent = safeDuration > 0 ? "影片長度：" + formatTime(safeDuration) : "";
+        courseMeta.hidden = courseAuthor.hidden && courseDuration.hidden;
     }
 
     function syncChapterHeight() {
@@ -146,9 +175,37 @@
         return Math.max(0, (Number(chapter.time) || 0) / 1000);
     }
 
+    function buildChapterPresentation() {
+        var counters = [];
+        var previousDepth = 0;
+
+        return chapters.map(function (chapter, index) {
+            var rawDepth = Number.parseInt(chapter.indent, 10);
+            var depth = Number.isFinite(rawDepth) && rawDepth >= 0 ? rawDepth : 0;
+
+            if (index === 0) {
+                depth = 0;
+            } else {
+                depth = Math.min(depth, previousDepth + 1);
+            }
+
+            counters.length = depth + 1;
+            counters[depth] = (counters[depth] || 0) + 1;
+            previousDepth = depth;
+
+            return {
+                depth: depth,
+                number: counters.join(".")
+            };
+        });
+    }
+
     function renderChapters() {
         var fragment = document.createDocumentFragment();
+        var presentation = buildChapterPresentation();
         chapterList.textContent = "";
+        chapterList.style.setProperty("--chapter-title-lines", String(chapterTitleLines));
+        chapterList.classList.toggle("chapter-list--hide-numbers", hideChapterNumbers);
 
         chapters.forEach(function (chapter, index) {
             var start = chapterStartSeconds(chapter);
@@ -159,28 +216,53 @@
             var number = document.createElement("span");
             var copy = document.createElement("span");
             var title = document.createElement("span");
+            var meta = document.createElement("span");
             var startLabel = document.createElement("span");
             var durationLabel = document.createElement("span");
+            var startIcon = document.createElement("span");
+            var durationIcon = document.createElement("span");
+            var startTime = formatTime(start);
+            var chapterDuration = formatTime(Math.max(0, nextStart - start));
 
             button.type = "button";
             button.className = "chapter-item";
-            button.setAttribute("aria-label", "播放第 " + (index + 1) + " 章：" + (chapter.title || "未命名章節"));
+            button.style.setProperty("--chapter-indent", (Math.min(presentation[index].depth, 5) * 12) + "px");
+            button.setAttribute("data-depth", String(presentation[index].depth));
+            button.setAttribute(
+                "aria-label",
+                "播放章節" + (hideChapterNumbers ? "：" : " " + presentation[index].number + "：") +
+                (chapter.title || "未命名章節")
+            );
 
             number.className = "chapter-number";
-            number.textContent = String(index + 1).padStart(2, "0");
+            number.textContent = presentation[index].number;
             copy.className = "chapter-copy";
             title.className = "chapter-title";
             title.textContent = chapter.title || "未命名章節";
-            startLabel.className = "chapter-start";
-            startLabel.textContent = formatTime(start);
-            durationLabel.className = "chapter-duration";
-            durationLabel.textContent = formatTime(Math.max(0, nextStart - start));
+            meta.className = "chapter-meta";
+            startLabel.className = "chapter-start chapter-time";
+            startLabel.setAttribute("aria-label", "影片位置 " + startTime);
+            startLabel.title = "影片位置 " + startTime;
+            startIcon.className = "chapter-time-icon chapter-time-icon--position";
+            startIcon.setAttribute("aria-hidden", "true");
+            startLabel.appendChild(startIcon);
+            startLabel.appendChild(document.createTextNode(startTime));
+            durationLabel.className = "chapter-duration chapter-time";
+            durationLabel.setAttribute("aria-label", "章節長度 " + chapterDuration);
+            durationLabel.title = "章節長度 " + chapterDuration;
+            durationIcon.className = "chapter-time-icon chapter-time-icon--duration";
+            durationIcon.setAttribute("aria-hidden", "true");
+            durationLabel.appendChild(durationIcon);
+            durationLabel.appendChild(document.createTextNode(chapterDuration));
 
+            meta.appendChild(startLabel);
+            meta.appendChild(durationLabel);
             copy.appendChild(title);
-            copy.appendChild(startLabel);
-            button.appendChild(number);
+            copy.appendChild(meta);
+            if (!hideChapterNumbers) {
+                button.appendChild(number);
+            }
             button.appendChild(copy);
-            button.appendChild(durationLabel);
             button.addEventListener("click", function () {
                 seekToChapter(index);
             });
@@ -190,10 +272,24 @@
         });
 
         chapterList.appendChild(fragment);
+        window.requestAnimationFrame(updateChapterTitleOverflow);
         if (chapters.length > 0) {
             setActiveChapter(0);
         }
         chapterEmpty.hidden = chapters.length > 0;
+    }
+
+    function updateChapterTitleOverflow() {
+        var titleElements = chapterList.querySelectorAll(".chapter-title");
+
+        Array.prototype.forEach.call(titleElements, function (titleElement) {
+            var button = titleElement.closest(".chapter-item");
+            button.classList.remove("is-title-clipped");
+            var isClipped = titleElement.scrollHeight > titleElement.clientHeight + 1 ||
+                titleElement.scrollWidth > titleElement.clientWidth + 1;
+
+            button.classList.toggle("is-title-clipped", isClipped);
+        });
     }
 
     function seekToChapter(index) {
@@ -601,6 +697,7 @@
         volumeSlider.value = String(value);
         volumeSlider.style.setProperty("--progress", (value * 100) + "%");
         muteToggle.classList.toggle("is-muted", value === 0);
+        muteToggle.classList.toggle("is-low", value > 0 && value <= 0.5);
         muteToggle.setAttribute("aria-label", value === 0 ? "開啟聲音" : "靜音");
     }
 
@@ -798,6 +895,7 @@
         video.addEventListener("durationchange", updateTimeline);
         video.addEventListener("loadedmetadata", function () {
             updateTimeline();
+            setCourseDurationMetadata(video.duration);
             installPictureInPicture();
         });
         video.addEventListener("volumechange", updateVolume);
@@ -836,10 +934,12 @@
         window.addEventListener("resize", function () {
             fitOpenMenus();
             syncChapterHeight();
+            updateChapterTitleOverflow();
         });
         window.addEventListener("orientationchange", function () {
             fitOpenMenus();
             syncChapterHeight();
+            updateChapterTitleOverflow();
         });
         document.addEventListener("fullscreenchange", updateFullscreenState);
         document.addEventListener("webkitfullscreenchange", updateFullscreenState);

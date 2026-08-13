@@ -35,27 +35,31 @@ config.js 相同的位置：
 
 2. 依照以下規則命名：
 
-   subtitle.語言代碼.srt
-   subtitle.語言代碼.vtt
+   media.語言代碼.srt
+   media.語言代碼.vtt
 
    常用範例：
 
-   subtitle.zh-TW.srt    正體中文（臺灣）
-   subtitle.zh-Hant.srt  正體中文（不限定地區）
-   subtitle.zh-CN.srt    簡體中文
-   subtitle.zh-Hans.srt  簡體中文（不限定地區）
-   subtitle.en.vtt       英文
-   subtitle.ja.srt       日文
-   subtitle.ko.vtt       韓文
-   subtitle.es.srt       西班牙文
-   subtitle.fr.vtt       法文
-   subtitle.de.srt       德文
-   subtitle.vi.srt       越南文
-   subtitle.id.srt       印尼文
-   subtitle.th.vtt       泰文
+   media.zh-TW.srt    正體中文（臺灣）
+   media.zh-Hant.srt  正體中文（不限定地區）
+   media.zh-CN.srt    簡體中文
+   media.zh-Hans.srt  簡體中文（不限定地區）
+   media.en.vtt       英文
+   media.ja.srt       日文
+   media.ko.vtt       韓文
+   media.es.srt       西班牙文
+   media.fr.vtt       法文
+   media.de.srt       德文
+   media.vi.srt       越南文
+   media.id.srt       印尼文
+   media.th.vtt       泰文
 
    同一種語言只能保留一個字幕檔。例如不能同時放入
-   subtitle.en.srt 與 subtitle.en.vtt。
+   media.en.srt 與 media.en.vtt。
+
+   若只有正體中文字幕，也可命名為 media.srt 或 media.vtt。只要資料夾內
+   沒有 media.zh-TW.srt 或 media.zh-TW.vtt，工具就會自動將其視為正體
+   中文（zh-TW）。media.srt 與 media.vtt 不可同時存在。
 
 3. 雙擊「更新字幕.cmd」。完成後會自動開啟新版課程播放器。
 
@@ -63,7 +67,7 @@ config.js 相同的位置：
 【重要說明】
 
 - 支援 SRT、VTT 與多國語字幕。
-- 如果有 subtitle.zh-TW.srt 或 subtitle.zh-TW.vtt，播放器預設顯示正體中文字幕。
+- 如果有 media.zh-TW.srt／vtt，或只有 media.srt／vtt，播放器預設顯示正體中文字幕。
 - 學生可以從影片控制列的「CC」按鈕切換語言或關閉字幕。
 - 「CC → 字幕外觀」可調整字幕大小、顯示樣式與顯示位置。
 - 瀏覽器及作業系統支援時，控制列會顯示子母畫面按鈕。

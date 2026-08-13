@@ -3,7 +3,7 @@
     EverCam Subtitle Player
     Project: https://github.com/kaoshou/evercam-subtitle-player
     Developed by 鄭郁翰（崑山科技大學）
-    Copyright © 2026 鄭郁翰. 專案授權條款以原始碼儲存庫所載內容為準。
+    Copyright © 2026 鄭郁翰。
     本專案為獨立開發的非官方工具，與 EverCam 商標權人無隸屬或授權關係。
 -->
 <html lang="zh-Hant">
@@ -18,7 +18,13 @@
     <main class="page-shell">
         <header class="course-header">
             <span class="course-mark" aria-hidden="true"><span></span></span>
-            <h1 id="course-title">正在載入課程名稱…</h1>
+            <div class="course-heading">
+                <h1 id="course-title">正在載入課程名稱…</h1>
+                <div id="course-meta" class="course-meta" hidden>
+                    <span id="course-author" class="course-meta-item" hidden></span>
+                    <span id="course-duration" class="course-meta-item" hidden></span>
+                </div>
+            </div>
         </header>
 
         <div class="learning-layout">
@@ -98,6 +104,15 @@
                 <p id="chapter-empty" class="empty-state" hidden>尚無章節索引。</p>
             </aside>
         </div>
+
+        <footer class="course-footer" aria-label="播放器操作提示">
+            <p class="keyboard-hints">
+                <span><kbd>Space</kbd> 播放／暫停</span>
+                <span><kbd>← →</kbd> 快退／快轉</span>
+                <span><kbd>M</kbd> 靜音</span>
+                <span><kbd>F</kbd> 全螢幕</span>
+            </p>
+        </footer>
     </main>
 
     <noscript>

@@ -16,9 +16,12 @@ EverCam 字幕播放器（非官方）：教師快速使用
 2. 將字幕放進 EverCam 課程資料夾，與 media.mp4、config.js 放在一起。
 
    命名範例：
-   subtitle.zh-TW.srt  正體中文
-   subtitle.en.vtt     英文
-   subtitle.ja.srt     日文
+   media.zh-TW.srt  正體中文
+   media.en.vtt     英文
+   media.ja.srt     日文
+
+   若只有正體中文字幕，也可命名為 media.srt 或 media.vtt；當資料夾內
+   沒有 media.zh-TW.srt／vtt 時，工具會自動將其視為正體中文（zh-TW）。
 
 3. 回到解壓縮的安裝套件，雙擊「安裝字幕播放器.cmd」。可直接在
    文字欄按 Ctrl+V 貼上完整路徑，或按「貼上路徑」、「瀏覽資料夾」。

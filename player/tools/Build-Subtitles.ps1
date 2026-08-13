@@ -128,18 +128,49 @@ if (-not [System.IO.Directory]::Exists($resolvedFolder)) {
     throw "Course folder not found: $resolvedFolder"
 }
 
-$subtitlePattern = "^subtitle\.(?<language>[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*)\.(?<format>srt|vtt)$"
-$subtitleFiles = @(
+$subtitlePattern = "^media\.(?<language>[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*)\.(?<format>srt|vtt)$"
+$genericSubtitlePattern = "^media\.(?<format>srt|vtt)$"
+$namedSubtitleFiles = @(
     Get-ChildItem -LiteralPath $resolvedFolder -File |
         Where-Object { $_.Name -match $subtitlePattern } |
         Sort-Object Name
 )
 
-$tracks = @()
-$usedLanguages = @{}
-foreach ($file in $subtitleFiles) {
+$subtitleEntries = @()
+$hasTraditionalChinese = $false
+foreach ($file in $namedSubtitleFiles) {
     $match = [regex]::Match($file.Name, $subtitlePattern, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
     $language = ConvertTo-CanonicalLanguage $match.Groups["language"].Value
+    if ($language.Equals("zh-TW", [System.StringComparison]::OrdinalIgnoreCase)) {
+        $hasTraditionalChinese = $true
+    }
+    $subtitleEntries += [PSCustomObject]@{
+        File = $file
+        Language = $language
+    }
+}
+
+$genericSubtitleFiles = @(
+    Get-ChildItem -LiteralPath $resolvedFolder -File |
+        Where-Object { $_.Name -match $genericSubtitlePattern } |
+        Sort-Object Name
+)
+
+if (-not $hasTraditionalChinese -and $genericSubtitleFiles.Count -gt 1) {
+    throw "Both media.srt and media.vtt were found. Keep only one generic subtitle file for Traditional Chinese (zh-TW)."
+}
+if (-not $hasTraditionalChinese -and $genericSubtitleFiles.Count -eq 1) {
+    $subtitleEntries += [PSCustomObject]@{
+        File = $genericSubtitleFiles[0]
+        Language = "zh-TW"
+    }
+}
+
+$tracks = @()
+$usedLanguages = @{}
+foreach ($entry in $subtitleEntries) {
+    $file = $entry.File
+    $language = $entry.Language
     $languageKey = $language.ToLowerInvariant()
 
     if ($usedLanguages.ContainsKey($languageKey)) {

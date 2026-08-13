@@ -35,6 +35,7 @@ try {
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "安裝字幕播放器.cmd") -Destination $stagingFolder
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "快速使用說明.txt") -Destination $stagingFolder
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "商標與免責聲明.txt") -Destination $stagingFolder
+    Copy-Item -LiteralPath (Join-Path $repositoryRoot "VERSION") -Destination $stagingFolder
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "player") -Destination $stagingFolder -Recurse
     Copy-Item -LiteralPath (Join-Path $repositoryRoot "scripts\Install-Player.ps1") -Destination (Join-Path $stagingFolder "scripts")
 
