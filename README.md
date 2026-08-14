@@ -4,7 +4,7 @@
 
 讓 EverCam 匯出的網頁課程快速支援 SRT、VTT、多國語字幕，以及適合桌機與手機使用的現代化播放器。
 
-- 目前版本：`1.0.3`
+- 目前版本：`1.0.4`
 - 專案網址：[github.com/kaoshou/evercam-subtitle-player](https://github.com/kaoshou/evercam-subtitle-player)
 - 工具使用環境：Windows 10／11
 - 影片播放環境：支援 HTML5 Video 的現代瀏覽器
@@ -17,7 +17,7 @@
 
 ## 三步驟完成安裝
 
-先從 GitHub Releases 下載並解壓縮 `evercam-subtitle-player-v1.0.3.zip`。請保持安裝套件內的檔案結構，不要只取出其中一個檔案。
+先從 GitHub Releases 下載並解壓縮 `evercam-subtitle-player-v1.0.4.zip`。請保持安裝套件內的檔案結構，不要只取出其中一個檔案。
 
 ### 1. 準備字幕
 
@@ -190,6 +190,12 @@ var CHAPTER_TITLE_LINES = 1;
 更多代碼可參考：[W3C Choosing a language tag](https://www.w3.org/International/questions/qa-choosing-language-tags) 與 [IANA Language Subtag Registry](https://www.iana.org/assignments/language-subtags-tags-extensions/language-subtags-tags-extensions.xhtml)。
 
 ## 常見問題
+
+### 雙擊「安裝字幕播放器.cmd」後視窗立即消失
+
+請確認下載的是 `v1.0.4` 或更新版本，並先將 ZIP **完整解壓縮**，不要直接在壓縮檔內執行，也不要只取出 `.cmd`。正確的套件資料夾內應同時包含 `player`、`scripts` 與「安裝字幕播放器.cmd」。
+
+自 `v1.0.4` 起，若 PowerShell、WinForms 或套件檔案發生問題，命令視窗會保留並顯示錯誤碼與原因。請保留該畫面，依訊息檢查或將錯誤畫面附在 GitHub Issue。
 
 ### 「開始安裝」按鈕無法使用
 

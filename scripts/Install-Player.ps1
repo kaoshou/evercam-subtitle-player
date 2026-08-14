@@ -493,14 +493,21 @@ try {
     }
 }
 catch {
+    $errorMessage = $_.Exception.Message
     if ($usedInteractiveSelector) {
-        [System.Windows.Forms.MessageBox]::Show(
-            "安裝未完成：`r`n$($_.Exception.Message)",
-            "安裝失敗",
-            [System.Windows.Forms.MessageBoxButtons]::OK,
-            [System.Windows.Forms.MessageBoxIcon]::Error
-        ) | Out-Null
+        try {
+            Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop
+            [System.Windows.Forms.MessageBox]::Show(
+                "安裝未完成：`r`n$errorMessage",
+                "安裝失敗",
+                [System.Windows.Forms.MessageBoxButtons]::OK,
+                [System.Windows.Forms.MessageBoxIcon]::Error
+            ) | Out-Null
+        }
+        catch {
+            # The command launcher keeps its window open when WinForms is unavailable.
+        }
     }
-    Write-Error $_.Exception.Message
+    [Console]::Error.WriteLine("安裝未完成：$errorMessage")
     exit 1
 }
