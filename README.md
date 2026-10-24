@@ -119,9 +119,13 @@ media.zh-TW.srt／media.en.vtt
 
 ## 執行畫面
 
-左側為課程影片與播放器控制列，右側保留 EverCam 章節索引。
+左側為課程影片與播放器控制列，右側可切換「章節／逐字稿」。以下使用示範教材呈現新版播放器。
 
-![EverCam Subtitle Player 桌機版執行畫面](docs/images/player-desktop.png)
+![新版播放器：左側課程影片，右側章節索引與逐字稿分頁](docs/images/player-desktop.png)
+
+切換「逐字稿」並輸入關鍵字，即可查看時間與高亮的搜尋結果；點選結果可跳到影片對應位置。「閱讀設定」另提供字級、行距、高對比與完整逐字稿下載。
+
+![逐字稿搜尋示範：搜尋「搜尋」，列出兩段含關鍵字的字幕及對應時間](docs/images/player-transcript-search.png)
 
 ## 主要功能
 
