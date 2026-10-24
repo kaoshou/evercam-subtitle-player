@@ -4,7 +4,7 @@
 
 讓 EverCam 匯出的網頁課程快速支援 SRT、VTT、多國語字幕，以及適合桌機與手機使用的現代化播放器。
 
-- 目前版本：`1.0.4`
+- 目前版本：[`1.1.0`](https://github.com/kaoshou/evercam-subtitle-player/releases/tag/v1.1.0)
 - 專案網址：[github.com/kaoshou/evercam-subtitle-player](https://github.com/kaoshou/evercam-subtitle-player)
 - 工具使用環境：Windows 10／11
 - 影片播放環境：支援 HTML5 Video 的現代瀏覽器
@@ -17,7 +17,7 @@
 
 ## 三步驟完成安裝
 
-先從 GitHub Releases 下載並解壓縮 `evercam-subtitle-player-v1.0.4.zip`。請保持安裝套件內的檔案結構，不要只取出其中一個檔案。
+先下載 [evercam-subtitle-player-v1.1.0.zip 使用者安裝包](https://github.com/kaoshou/evercam-subtitle-player/releases/download/v1.1.0/evercam-subtitle-player-v1.1.0.zip) 並完整解壓縮。請保持安裝套件內的檔案結構，不要只取出其中一個檔案。
 
 ### 1. 準備字幕
 
@@ -156,8 +156,12 @@ var CHAPTER_TITLE_LINES = 1;
 - 從速度選單切換慢速、正常或快速播放。
 - 瀏覽器與作業系統支援時，可使用子母畫面。
 - 點擊右側或下方的章節索引可跳至該章節。
+- 切換「逐字稿」分頁，選擇語言並搜尋關鍵字；點擊結果可跳到對應時間並播放。
+- 「跟隨播放」預設關閉；開啟後跟隨目前字幕，搜尋時暫停跟隨，不搶走鍵盤焦點。
+- 「閱讀設定」提供字級、行距、高對比，以及完整逐字稿 HTML／TXT 下載（可包含時間）。下載不受搜尋與分頁限制。
+- 沒有字幕時會顯示提示；新增字幕後請執行「更新字幕.cmd」並重新整理。
 
-桌機鍵盤快捷鍵：
+桌機鍵盤快捷鍵（先將焦點移入播放器；搜尋、選單、滑桿保留原生按鍵功能）：
 
 | 按鍵 | 功能 |
 |---|---|
@@ -165,6 +169,18 @@ var CHAPTER_TITLE_LINES = 1;
 | `←`／`→` | 倒退／快轉 10 秒 |
 | `M` | 靜音／恢復聲音 |
 | `F` | 進入／離開全螢幕 |
+
+使用 Tab 可依序操作控制項；章節／逐字稿分頁可用左右方向鍵切換，Esc 關閉設定並回到開啟按鈕。頁尾「操作說明與鍵盤快捷鍵」包含完整說明，頁首定位連結在取得鍵盤焦點時顯示。
+
+閱讀與字幕偏好僅保存在本機瀏覽器；不記錄上次播放位置。
+
+### 整合來源與無障礙驗證
+
+本版移植 [Video-to-Subtitle v2.8.3 的 EverCam 播放器](https://github.com/kaoshou/Video-to-Subtitle/tree/c167601/assets/evercam_player)（提交 `c167601`）及其測試，保留此專案的 Windows 安裝器、`media.*` 字幕命名與離線 `subtitles-data.js` 流程。閱讀介面加入焦點提示、語意標籤、狀態回報、高對比與鍵盤操作。
+
+自動測試通過不代表全面符合無障礙 AA；仍需人工檢查、NVDA／VoiceOver 實際朗讀及跨瀏覽器驗證，教材本身也需要字幕校對。
+
+開發者可執行 `npm ci`、`npm test` 驗證播放器；瀏覽器檢查先執行 `npm ci --prefix tests/browser`、`npx --prefix tests/browser playwright install chromium`，再執行 `node scripts/smoke_accessibility_browser.mjs --media <至少260秒的合成MP4> --report-dir test-results/accessibility`。測試中的一般 MP4 範本僅供同源程式回歸測試，不包含在教師安裝包。
 
 ## 常用語言代碼
 
